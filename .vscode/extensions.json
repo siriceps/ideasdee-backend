@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "mgmcdermott.vscode-language-babel",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "pkief.material-icon-theme",
+    "esbenp.prettier-vscode",
+    "sonarsource.sonarlint-vscode",
+    "tabnine.tabnine-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "irongeek.vscode-env"
+  ]
+}
