@@ -7,3 +7,238 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model Account {
+  id       Int     @id @default(autoincrement())
+  username String  @unique @db.VarChar(150)
+  email    String? @unique @db.VarChar(255)
+  password String  @default("") @db.VarChar(255)
+
+  title           String?   @db.VarChar(64)
+  firstName       String?   @db.VarChar(120)
+  middleName      String?   @db.VarChar(120)
+  lastName        String?   @db.VarChar(120)
+  profileImage    String?   @default("") @db.Text
+  backgroundImage String?   @default("") @db.Text
+  role            String?   @default("") @db.VarChar(64)
+  bio             String?
+  miniBio         String?   @db.VarChar(64)
+  phoneNumber     String?   @default("") @db.VarChar(64)
+  gender          Int?      @default(0)
+  dateBirth       DateTime? @map("date_birth") @db.Date
+
+  datetimeUpdate DateTime @default(now()) @updatedAt
+  datetimeCreate DateTime @default(now())
+  isActive       Boolean? @default(true) @db.TinyInt
+  isDisplay      Boolean? @default(true) @db.TinyInt
+  commentId      Int?
+  reviewId       Int?
+
+  Comment        Comment?       @relation(fields: [commentId], references: [id])
+  Review         Review?        @relation(fields: [reviewId], references: [id])
+  FriendShip     FriendShip?    @relation(fields: [friendShipId], references: [id])
+  friendShipId   Int?
+  Chat           Chat?          @relation(fields: [chatId], references: [id])
+  chatId         Int?
+  ChatMessage    ChatMessage?   @relation(fields: [chatMessageId], references: [id])
+  chatMessageId  Int?
+  chatMememberId Int?
+  ChatMemember   ChatMemember[]
+  Request        Request[]
+
+  @@index([email, username, isActive])
+  @@fulltext([firstName, lastName, middleName])
+}
+
+model FriendShip {
+  id               Int @id @default(autoincrement())
+  accountId        Int
+  requestAccountId Int
+  relation         Int
+
+  account Account[]
+}
+
+model Idea {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(150)
+  desc        String?
+  conceptIds  Int
+  categoryIds Int
+  isDisplay   Boolean? @default(true) @db.TinyInt
+
+  commentId  Int?
+  ideaTypeId Int?
+
+  IdeaAttatchment IdeaAttatchment[]
+  Comment         Comment?          @relation(fields: [commentId], references: [id])
+  ideaTypes       IdeaType[]
+  Review          Review?           @relation(fields: [reviewId], references: [id])
+  type            Type[]
+  reviewId        Int?
+
+  @@index([name, conceptIds, categoryIds, isDisplay])
+  @@fulltext([name])
+}
+
+model IdeaAttatchment {
+  id     Int     @id @default(autoincrement())
+  ideaId Int?
+  url    String?
+  key    String?
+
+  idea Idea? @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+}
+
+model Type {
+  id   Int     @id @default(autoincrement())
+  type Int?
+  name String?
+
+  ideaType IdeaType[]
+  Idea     Idea?      @relation(fields: [ideaId], references: [id])
+  ideaId   Int?
+}
+
+model IdeaType {
+  id     Int @id @default(autoincrement())
+  ideaId Int
+  typeId Int
+
+  idea Idea @relation(fields: [ideaId], references: [id])
+  type Type @relation(fields: [typeId], references: [id])
+}
+
+model Comment {
+  id             Int      @id @default(autoincrement())
+  ideaId         Int
+  level          Int?     @default(1)
+  parentId       Int?
+  detail         String?
+  isDisplay      Boolean  @default(true)
+  datetimeUpdate DateTime @default(now()) @updatedAt
+  datetimeCreate DateTime @default(now())
+
+  child   Comment[] @relation("ParentChild")
+  parent  Comment?  @relation("ParentChild", fields: [parentId], references: [id])
+  idea    Idea[]
+  account Account[]
+
+  @@index([datetimeCreate])
+}
+
+model Review {
+  id             Int      @id @default(autoincrement())
+  ideaId         Int?
+  score          Int?     @db.TinyInt
+  datetimeUpdate DateTime @default(now()) @updatedAt
+  datetimeCreate DateTime @default(now())
+
+  idea    Idea[]
+  account Account[]
+
+  @@index([datetimeCreate])
+}
+
+model Chat {
+  id               Int      @id @default(autoincrement())
+  name             Int?
+  type             Int?     @db.TinyInt
+  lastestMessageId Int?
+  datetimeUpdate   DateTime @default(now()) @updatedAt
+  datetimeCreate   DateTime @default(now())
+
+  account        Account[]
+  chatMessageId  Int?
+  ChatMessage    ChatMessage?   @relation(fields: [chatMessageId], references: [id])
+  chatMememberId Int?
+  ChatMemember   ChatMemember[]
+
+  @@index([name, lastestMessageId, datetimeCreate])
+}
+
+model ChatMessage {
+  id             Int      @id @default(autoincrement())
+  type           Int?     @db.TinyInt
+  payload        Json?
+  datetimeUpdate DateTime @default(now()) @updatedAt
+  datetimeCreate DateTime @default(now())
+
+  chat    Chat[]
+  Account Account[]
+}
+
+model ChatMemember {
+  id        Int @id @default(autoincrement())
+  chatId    Int
+  accountId Int
+
+  chat    Chat    @relation(fields: [chatId], references: [id])
+  Account Account @relation(fields: [accountId], references: [id])
+}
+
+model Request {
+  id        Int @id @default(autoincrement())
+  type      Int
+  accountId Int
+
+  Account Account @relation(fields: [accountId], references: [id])
+}
+
+model Mailer {
+  id             Int       @id @default(autoincrement())
+  reciever       String
+  subject        String?
+  subjectContext String?
+  body           String?
+  bodyContext    String?
+  status         Int
+  payload        Json?
+  traceback      String?
+  datetimeSend   DateTime?
+  datetimeCreate DateTime  @default(now())
+}
+
+model Notification {
+  id            Int      @id @default(autoincrement())
+  isRead        Boolean? @default(false) @db.TinyInt
+  isAcknowledge Boolean? @default(false) @db.TinyInt
+  isClickable   Boolean? @default(false) @db.TinyInt
+  type          String?
+
+  notificationBodyId Int
+
+  datetimeUpdate DateTime @default(now()) @updatedAt
+  datetimeCreate DateTime @default(now())
+
+  notificationBody NotificationBody @relation(fields: [notificationBodyId], references: [id])
+}
+
+model NotificationBody {
+  id       Int     @id @default(autoincrement())
+  code     String? @unique @db.VarChar(64)
+  typeBody Int?    @db.TinyInt
+  title    String? @default("") @db.Text
+  body     String? @default("") @db.Text
+  image    String? @default("") @db.Text
+  payload  Json?
+
+  datetimeUpdate DateTime       @default(now()) @updatedAt
+  datetimeCreate DateTime       @default(now())
+  Notification   Notification[]
+}
+
+model Log {
+  id             Int       @id @default(autoincrement())
+  code           String?   @db.VarChar(250)
+  feature        String?   @db.VarChar(250)
+  contentId      Int?      @default(0)
+  createBy       Int       @default(0)
+  status         String?   @db.VarChar(250)
+  datetimeCreate DateTime? @default(now())
+  payload        Json?
+  traceback      String?   @db.VarChar(1000)
+
+  @@index([code, feature, contentId, createBy])
+  @@map("log")
+}
