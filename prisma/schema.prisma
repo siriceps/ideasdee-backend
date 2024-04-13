@@ -20,12 +20,12 @@ model Account {
   lastName        String?   @db.VarChar(120)
   profileImage    String?   @default("") @db.Text
   backgroundImage String?   @default("") @db.Text
-  role            String?   @default("") @db.VarChar(64)
+  role            Int?      @default(0) @db.TinyInt
   bio             String?
   miniBio         String?   @db.VarChar(64)
   phoneNumber     String?   @default("") @db.VarChar(64)
   gender          Int?      @default(0)
-  dateBirth       DateTime? @map("date_birth") @db.Date
+  dateBirth       DateTime? @db.Date
 
   datetimeUpdate DateTime @default(now()) @updatedAt
   datetimeCreate DateTime @default(now())
@@ -36,7 +36,7 @@ model Account {
 
   Comment        Comment?       @relation(fields: [commentId], references: [id])
   Review         Review?        @relation(fields: [reviewId], references: [id])
-  FriendShip     FriendShip?    @relation(fields: [friendShipId], references: [id])
+  Friendship     Friendship?    @relation(fields: [friendShipId], references: [id])
   friendShipId   Int?
   Chat           Chat?          @relation(fields: [chatId], references: [id])
   chatId         Int?
@@ -50,11 +50,11 @@ model Account {
   @@fulltext([firstName, lastName, middleName])
 }
 
-model FriendShip {
+model Friendship {
   id               Int @id @default(autoincrement())
   accountId        Int
   requestAccountId Int
-  relation         Int
+  relation         Int @default(0)@db.TinyInt
 
   account Account[]
 }
