@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { appConfiguration } from './application.config';
 import { AppConfigurationConfigProvider } from './application.constant';
 import { AppConfiguration } from './application.interface';
+import { PrismaModule } from '../prisma';
 
 @Global()
 @Module({
@@ -11,6 +12,7 @@ import { AppConfiguration } from './application.interface';
 			load: [appConfiguration],
 			envFilePath: ['.env'],
 		}),
+		PrismaModule,
 	],
 	providers: [
 		{
